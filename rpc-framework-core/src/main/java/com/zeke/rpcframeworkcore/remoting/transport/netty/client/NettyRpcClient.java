@@ -49,8 +49,6 @@ public class NettyRpcClient implements RpcRequestTransport {
                 //  The timeout period of the connection.
                 //  If this time is exceeded or the connection cannot be established, the connection fails.
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                .option(ChannelOption.SO_KEEPALIVE, true)
-                .option(ChannelOption.TCP_NODELAY, true)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) {
@@ -63,8 +61,8 @@ public class NettyRpcClient implements RpcRequestTransport {
                     }
                 });
         this.unprocessedRequests = SingletonFactory.getInstance(UnprocessedRequests.class);
-        this.channelProvider = SingletonFactory.getInstance(ChannelProvider.class);
         this.serviceDiscovery = ExtensionLoader.getExtensionLoader(ServiceDiscovery.class).getExtension(ServiceDiscoveryEnum.ZK.getName());
+        this.channelProvider = SingletonFactory.getInstance(ChannelProvider.class);
     }
 
     /**
@@ -82,6 +80,7 @@ public class NettyRpcClient implements RpcRequestTransport {
                 log.info("The client has connected [{}] successful!", inetSocketAddress.toString());
                 completableFuture.complete(future.channel());
             } else {
+                log.error("Connection failed to {}", inetSocketAddress, future.cause());
                 throw new IllegalStateException();
             }
         });
@@ -100,7 +99,7 @@ public class NettyRpcClient implements RpcRequestTransport {
             // put unprocessed request
             unprocessedRequests.put(rpcRequest.getRequestId(), resultFuture);
             RpcMessage rpcMessage = RpcMessage.builder().data(rpcRequest)
-                    .codec(SerializationTypeEnum.HESSIAN.getCode())
+                    .codec(SerializationTypeEnum.KYRO.getCode())
                     .compress(CompressTypeEnum.GZIP.getCode())
                     .messageType(RpcConstants.REQUEST_TYPE).build();
             channel.writeAndFlush(rpcMessage).addListener((ChannelFutureListener) future -> {

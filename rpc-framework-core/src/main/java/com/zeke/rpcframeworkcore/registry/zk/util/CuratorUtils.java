@@ -1,7 +1,8 @@
 package com.zeke.rpcframeworkcore.registry.zk.util;
 
-import github.javaguide.enums.RpcConfigEnum;
-import github.javaguide.utils.PropertiesFileUtil;
+import com.zeke.rpcframeworkcommon.enums.RpcConfigEnum;
+import com.zeke.rpcframeworkcommon.utils.PropertiesFileUtil;
+import com.zeke.rpcframeworkcore.config.PrcFrameworkAutoProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -11,6 +12,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
+import org.slf4j.Logger;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -26,18 +28,26 @@ import java.util.concurrent.TimeUnit;
  * @author shuang.kou
  * @createTime 2020年05月31日 11:38:00
  */
-@Slf4j
 public final class CuratorUtils {
 
-    private static final int BASE_SLEEP_TIME = 1000;
-    private static final int MAX_RETRIES = 3;
-    public static final String ZK_REGISTER_ROOT_PATH = "/my-rpc";
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(CuratorUtils.class);
+
+    private static int BASE_SLEEP_TIME = 1000;
+    private static int MAX_RETRIES = 3;
+    public static String ZK_REGISTER_ROOT_PATH = "/my-rpc";
+    private static String DEFAULT_ZOOKEEPER_ADDRESS = "127.0.0.1:2181";
     private static final Map<String, List<String>> SERVICE_ADDRESS_MAP = new ConcurrentHashMap<>();
     private static final Set<String> REGISTERED_PATH_SET = ConcurrentHashMap.newKeySet();
     private static CuratorFramework zkClient;
-    private static final String DEFAULT_ZOOKEEPER_ADDRESS = "127.0.0.1:2181";
 
-    private CuratorUtils() {
+    public CuratorUtils() {
+    }
+
+    public static void setProperties(PrcFrameworkAutoProperties properties) {
+        CuratorUtils.BASE_SLEEP_TIME = properties.getBaseSleepTime();
+        CuratorUtils.MAX_RETRIES = properties.getMaxRetries();
+        CuratorUtils.ZK_REGISTER_ROOT_PATH = properties.getZkRegisterRootPath();
+        CuratorUtils.DEFAULT_ZOOKEEPER_ADDRESS = properties.getDefaultZookeeperAddress();
     }
 
     /**

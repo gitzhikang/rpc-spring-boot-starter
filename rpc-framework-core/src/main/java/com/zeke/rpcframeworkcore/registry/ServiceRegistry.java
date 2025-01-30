@@ -1,6 +1,6 @@
 package com.zeke.rpcframeworkcore.registry;
 
-import github.javaguide.extension.SPI;
+import com.zeke.rpcframeworkcommon.extension.SPI;
 
 import java.net.InetSocketAddress;
 

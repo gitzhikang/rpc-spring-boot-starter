@@ -1,1 +1,1 @@
-loadBalance=com.zeke.rpcframeworkcore.loadbalancer.ConsistentHashLoadBalance
+loadBalance=com.zeke.rpcframeworkcore.loadbalance.loadbalancer.ConsistenceHashLoadBalance

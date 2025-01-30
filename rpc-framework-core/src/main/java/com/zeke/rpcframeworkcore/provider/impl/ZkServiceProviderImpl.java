@@ -10,6 +10,7 @@ import com.zeke.rpcframeworkcore.provider.ServiceProvider;
 import com.zeke.rpcframeworkcore.registry.ServiceRegistry;
 import com.zeke.rpcframeworkcore.remoting.transport.netty.server.NettyRpcServer;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -18,12 +19,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * @author shuang.kou
- * @createTime 2020年05月13日 11:23:00
- */
-@Slf4j
+
 public class ZkServiceProviderImpl implements ServiceProvider {
+
+    Logger log = org.slf4j.LoggerFactory.getLogger(ZkServiceProviderImpl.class);
 
     /**
      * key: rpc service name(interface name + version + group)
@@ -34,6 +33,7 @@ public class ZkServiceProviderImpl implements ServiceProvider {
     private final ServiceRegistry serviceRegistry;
 
     public ZkServiceProviderImpl() {
+        log.info("ZkServiceProviderImpl init");
         serviceMap = new ConcurrentHashMap<>();
         registeredService = ConcurrentHashMap.newKeySet();
         serviceRegistry = ExtensionLoader.getExtensionLoader(ServiceRegistry.class).getExtension(ServiceRegistryEnum.ZK.getName());

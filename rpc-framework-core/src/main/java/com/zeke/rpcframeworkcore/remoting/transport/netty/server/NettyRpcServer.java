@@ -42,6 +42,7 @@ public class NettyRpcServer {
     @SneakyThrows
     public void start(){
         //add shutdown hook to clear the service in zoopkeeper
+        log.info("begin to start server");
         CustomShutdownHook.getCustomShutdownHook().clearAll();
         String host = InetAddress.getLocalHost().getHostAddress();
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
@@ -72,7 +73,8 @@ public class NettyRpcServer {
                     });
 
             // Bind and start to accept incoming connections.
-            ChannelFuture f = b.bind(host, PORT).sync();
+            log.info("server start to accept incoming connections");
+            ChannelFuture f = b.bind("0.0.0.0", PORT).sync();
             // Wait until the server socket is closed.
             f.channel().closeFuture().sync();
         }catch (Exception e){

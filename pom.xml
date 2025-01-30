@@ -38,6 +38,8 @@
     <modules>
         <module>rpc-framework-core</module>
         <module>rpc-framework-common</module>
+        <module>test-server</module>
+        <module>test-client</module>
     </modules>
 
     <dependencies>

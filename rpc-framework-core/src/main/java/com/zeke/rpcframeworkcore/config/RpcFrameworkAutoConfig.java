@@ -1,40 +1,48 @@
 package com.zeke.rpcframeworkcore.config;
 
 
+import com.zeke.rpcframeworkcommon.factory.SingletonFactory;
 import com.zeke.rpcframeworkcore.config.condition.RpcClientCondition;
 import com.zeke.rpcframeworkcore.config.condition.RpcServerCondition;
 import com.zeke.rpcframeworkcore.provider.ServiceProvider;
 import com.zeke.rpcframeworkcore.provider.impl.ZkServiceProviderImpl;
+import com.zeke.rpcframeworkcore.registry.zk.util.CuratorUtils;
 import com.zeke.rpcframeworkcore.remoting.transport.netty.client.NettyRpcClient;
 import com.zeke.rpcframeworkcore.remoting.transport.netty.server.NettyRpcServer;
 import com.zeke.rpcframeworkcore.scan.SpringBeanPostProcessorClient;
 import com.zeke.rpcframeworkcore.scan.SpringBeanPostProcessorServer;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
+import javax.annotation.PostConstruct;
+
 @Configuration
 @EnableConfigurationProperties(PrcFrameworkAutoProperties.class)
 public class RpcFrameworkAutoConfig {
 
+    Logger log = org.slf4j.LoggerFactory.getLogger(RpcFrameworkAutoConfig.class);
+
     @Bean
     ServiceProvider serviceProvider(){
-        return new ZkServiceProviderImpl();
+        return SingletonFactory.getInstance(ZkServiceProviderImpl.class);
     }
 
     @Bean
     @Conditional(RpcClientCondition.class)
     public NettyRpcClient nettyRpcClient(){
-        return new NettyRpcClient();
+        return SingletonFactory.getInstance(NettyRpcClient.class);
     }
 
     @Bean
     @Conditional(RpcServerCondition.class)
     public NettyRpcServer nettyRpcServer() {
-        NettyRpcServer nettyRpcServer = new NettyRpcServer();
-        nettyRpcServer.start();
+        NettyRpcServer nettyRpcServer = SingletonFactory.getInstance(NettyRpcServer.class);
+        new Thread(()->nettyRpcServer.start()).start();
         return nettyRpcServer;
     }
 
@@ -50,6 +58,7 @@ public class RpcFrameworkAutoConfig {
     @DependsOn("serviceProvider")
     public SpringBeanPostProcessorServer springBeanPostProcessorServer(ServiceProvider serviceProvider){
         return new SpringBeanPostProcessorServer(serviceProvider);
+
     }
 
 
