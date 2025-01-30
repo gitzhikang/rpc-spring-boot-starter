@@ -73,16 +73,25 @@ public class RpcClientProxy implements InvocationHandler {
                 .group(rpcServiceConfig.getGroup())
                 .version(rpcServiceConfig.getVersion())
                 .build();
-        RpcResponse<Object> rpcResponse = null;
         if (rpcRequestTransport instanceof NettyRpcClient) {
             CompletableFuture<RpcResponse<Object>> completableFuture = (CompletableFuture<RpcResponse<Object>>) rpcRequestTransport.sendRpcRequest(rpcRequest);
-            rpcResponse = completableFuture.get();
+            if (method.getReturnType().equals(CompletableFuture.class)) {
+                // 如果返回值类型是 CompletableFuture，直接返回
+                return completableFuture.thenApply(rpcResponse -> {
+                    this.check(rpcResponse, rpcRequest);
+                    return rpcResponse.getData();
+                });
+            } else {
+                // 如果返回值类型是普通类型，阻塞等待结果
+                RpcResponse<Object> rpcResponse = completableFuture.get(); // 这里会阻塞
+                this.check(rpcResponse, rpcRequest);
+                return rpcResponse.getData();
+            }
         }
 //        if (rpcRequestTransport instanceof SocketRpcClient) {
 //            rpcResponse = (RpcResponse<Object>) rpcRequestTransport.sendRpcRequest(rpcRequest);
 //        }
-        this.check(rpcResponse, rpcRequest);
-        return rpcResponse.getData();
+        return null;
     }
 
     private void check(RpcResponse<Object> rpcResponse, RpcRequest rpcRequest) {
