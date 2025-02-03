@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 
@@ -20,10 +21,9 @@ public class UserController {
     @Autowired
     private UserBusiness userBusiness;
 
-    private static ZooKeeper zk;
 
     @RequestMapping("/sayHello/{name}")
-    public String sayHello(@PathVariable String name) {
+    public String sayHello(@PathVariable String name) throws ExecutionException, InterruptedException {
         String ans = userBusiness.sayHello(name);
         System.out.println(ans);
         return ans;

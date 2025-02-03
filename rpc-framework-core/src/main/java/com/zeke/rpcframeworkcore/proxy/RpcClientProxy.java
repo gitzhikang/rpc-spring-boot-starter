@@ -5,6 +5,7 @@ import com.zeke.rpcframeworkcommon.enums.RpcErrorMessageEnum;
 import com.zeke.rpcframeworkcommon.enums.RpcResponseCodeEnum;
 import com.zeke.rpcframeworkcommon.exception.RpcException;
 import com.zeke.rpcframeworkcore.config.RpcServiceConfig;
+import com.zeke.rpcframeworkcore.context.AsyncResult;
 import com.zeke.rpcframeworkcore.remoting.dto.RpcRequest;
 import com.zeke.rpcframeworkcore.remoting.dto.RpcResponse;
 import com.zeke.rpcframeworkcore.remoting.transport.RpcRequestTransport;
@@ -65,7 +66,8 @@ public class RpcClientProxy implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
         log.info("invoked method: [{}]", method.getName());
-        RpcRequest rpcRequest = RpcRequest.builder().methodName(method.getName())
+        String methodName = method.getName().endsWith("Async") && rpcServiceConfig.isAsync()? method.getName().substring(0, method.getName().length() - 5) : method.getName();
+        RpcRequest rpcRequest = RpcRequest.builder().methodName(methodName)
                 .parameters(args)
                 .interfaceName(method.getDeclaringClass().getName())
                 .paramTypes(method.getParameterTypes())
@@ -75,12 +77,14 @@ public class RpcClientProxy implements InvocationHandler {
                 .build();
         if (rpcRequestTransport instanceof NettyRpcClient) {
             CompletableFuture<RpcResponse<Object>> completableFuture = (CompletableFuture<RpcResponse<Object>>) rpcRequestTransport.sendRpcRequest(rpcRequest);
-            if (method.getReturnType().equals(CompletableFuture.class)) {
+            if (rpcServiceConfig.isAsync()) {
                 // 如果返回值类型是 CompletableFuture，直接返回
-                return completableFuture.thenApply(rpcResponse -> {
+                CompletableFuture<Object> result = completableFuture.thenApply(rpcResponse -> {
                     this.check(rpcResponse, rpcRequest);
                     return rpcResponse.getData();
                 });
+                AsyncResult.setCurrentResult(result);
+                return null;
             } else {
                 // 如果返回值类型是普通类型，阻塞等待结果
                 RpcResponse<Object> rpcResponse = completableFuture.get(); // 这里会阻塞

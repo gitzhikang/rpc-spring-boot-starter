@@ -35,7 +35,8 @@ public class SpringBeanPostProcessorClient implements BeanPostProcessor {
             if (rpcReference != null) {
                 RpcServiceConfig rpcServiceConfig = RpcServiceConfig.builder()
                         .group(rpcReference.group())
-                        .version(rpcReference.version()).build();
+                        .version(rpcReference.version())
+                        .async(rpcReference.async()).build();
                 RpcClientProxy rpcClientProxy = new RpcClientProxy(rpcClient, rpcServiceConfig);
                 Object clientProxy = rpcClientProxy.getProxy(declaredField.getType());
                 declaredField.setAccessible(true);

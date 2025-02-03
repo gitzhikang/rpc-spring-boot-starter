@@ -27,6 +27,8 @@ public class RpcServiceConfig {
      */
     private Object service;
 
+    private boolean async;
+
     public String getRpcServiceName() {
         return this.getServiceName() + this.getGroup() + this.getVersion();
     }
